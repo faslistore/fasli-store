@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>FASLI STORE</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b0b0b;color:#fff}
+    .wrap{max-width:520px;margin:auto;padding:18px 16px 100px}
+    .brand{text-align:center;font-size:30px;font-weight:900;letter-spacing:2px;margin:8px 0 4px}
+    .sub{text-align:center;color:#888;margin-bottom:22px}
+    .tabs{display:flex;gap:8px;overflow:auto;margin-bottom:18px}
+    .tab{border:1px solid #292929;background:#151515;color:#aaa;border-radius:14px;padding:10px 15px;white-space:nowrap}
+    .tab.active{background:#fff;color:#000}
+    .card{background:#151515;border:1px solid #272727;border-radius:22px;overflow:hidden;margin-bottom:14px}
+    .photo{height:300px;background:linear-gradient(135deg,#222,#090909);display:flex;align-items:center;justify-content:center;color:#555;font-size:52px;font-weight:900}
+    .info{padding:16px}
+    .name{font-size:20px;font-weight:800}
+    .cat{color:#888;margin-top:4px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:15px}
+    .price{font-size:20px;font-weight:800}
+    button{border:0;border-radius:14px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer}
+    .add{background:#fff;color:#000}
+    .bottom{position:fixed;left:0;right:0;bottom:0;background:rgba(11,11,11,.92);backdrop-filter:blur(12px);padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid #222}
+    .bottom button{width:100%;background:#fff;color:#000}
+    .cart{display:none}
+    .cart.show{display:block}
+    .catalog.hide{display:none}
+    .empty{color:#888;text-align:center;padding:35px 10px}
+    input{width:100%;padding:14px;border-radius:13px;border:1px solid #333;background:#111;color:#fff;margin:7px 0;font-size:16px}
+    .total{font-size:20px;font-weight:800;margin:18px 0}
+    .back{background:#242424;color:#fff;margin-bottom:12px}
+    .order{background:#fff;color:#000;width:100%}
+    .notice{color:#888;font-size:13px;margin-top:10px;line-height:1.4}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">FASLI STORE</div>
+  <div class="sub">Одежда • Telegram Mini App</div>
+
+  <section id="catalog" class="catalog">
+    <div class="tabs"><button class="tab active">Все</button><button class="tab">Футболки</button></div>
+    <div class="card">
+      <div class="photo">FASLI</div>
+      <div class="info">
+        <div class="name">Technique</div>
+        <div class="cat">Футболка</div>
+        <div class="row">
+          <div class="price">1000 грн</div>
+          <button class="add" onclick="addToCart()">В корзину</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cart" class="cart">
+    <button class="back" onclick="showCatalog()">← Каталог</button>
+    <h2>Корзина</h2>
+    <div id="cartContent"></div>
+  </section>
+</div>
+
+<div class="bottom">
+  <button id="cartBtn" onclick="showCart()">🛒 Корзина (0)</button>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if(tg){tg.ready();tg.expand();}
+let count=0;
+
+function addToCart(){
+  count=1;
+  updateCartButton();
+  if(tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+}
+function updateCartButton(){
+  document.getElementById('cartBtn').textContent=`🛒 Корзина (${count})`;
+}
+function showCatalog(){
+  document.getElementById('catalog').classList.remove('hide');
+  document.getElementById('cart').classList.remove('show');
+}
+function showCart(){
+  document.getElementById('catalog').classList.add('hide');
+  document.getElementById('cart').classList.add('show');
+  renderCart();
+}
+function renderCart(){
+  const el=document.getElementById('cartContent');
+  if(!count){
+    el.innerHTML='<div class="empty">Корзина пока пустая</div>';
+    return;
+  }
+  el.innerHTML=`
+    <div class="card"><div class="info">
+      <div class="name">Technique × ${count}</div>
+      <div class="cat">Футболка</div>
+      <div class="total">Итого: ${1000*count} грн</div>
+      <input id="name" placeholder="Ваше имя">
+      <input id="phone" placeholder="Телефон">
+      <input id="comment" placeholder="Комментарий к заказу">
+      <button class="order" onclick="sendOrder()">Оформить заказ</button>
+      <div class="notice">После нажатия заказ будет передан боту. Подключение обработки заказов на сервере добавляется следующим шагом.</div>
+    </div></div>`;
+}
+function sendOrder(){
+  const name=document.getElementById('name').value.trim();
+  const phone=document.getElementById('phone').value.trim();
+  if(!name || !phone){alert('Заполни имя и телефон');return;}
+  const data={product:'Technique',category:'Футболка',price:1000*count,name,phone,comment:document.getElementById('comment').value.trim()};
+  if(tg?.sendData){tg.sendData(JSON.stringify(data));}
+  else {alert('Заказ сформирован: '+JSON.stringify(data));}
+}
+</script>
+</body>
+</html>
